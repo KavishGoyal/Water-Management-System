@@ -1,0 +1,632 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Water Crisis AI - Multi-Agent System Dashboard</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: #fff;
+            padding: 20px;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            animation: fadeIn 0.8s ease-in;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .header p {
+            font-size: 1.1em;
+            opacity: 0.9;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .stat-card {
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            padding: 25px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            animation: slideUp 0.5s ease-out forwards;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+        }
+
+        .stat-icon {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+
+        .stat-value {
+            font-size: 2em;
+            font-weight: bold;
+            margin: 10px 0;
+        }
+
+        .stat-label {
+            font-size: 0.9em;
+            opacity: 0.8;
+        }
+
+        .main-content {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        .tank-monitor {
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            padding: 25px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .tank-visual {
+            position: relative;
+            width: 100%;
+            height: 300px;
+            margin: 20px 0;
+        }
+
+        .tank-container {
+            position: relative;
+            width: 200px;
+            height: 280px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.1);
+            border: 3px solid rgba(255, 255, 255, 0.3);
+            border-radius: 10px;
+            overflow: hidden;
+        }
+
+        .water-level {
+            position: absolute;
+            bottom: 0;
+            width: 100%;
+            background: linear-gradient(180deg, #4facfe 0%, #00f2fe 100%);
+            transition: height 1s ease;
+            animation: wave 2s infinite ease-in-out;
+        }
+
+        @keyframes wave {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-5px); }
+        }
+
+        .level-text {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 2em;
+            font-weight: bold;
+            color: #fff;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+            z-index: 10;
+        }
+
+        .agents-panel {
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            padding: 25px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .agent {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 15px;
+            margin-bottom: 15px;
+            border-radius: 10px;
+            border-left: 4px solid #4facfe;
+            transition: all 0.3s ease;
+        }
+
+        .agent.active {
+            background: rgba(79, 172, 254, 0.3);
+            border-left-color: #00f2fe;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.7; }
+        }
+
+        .agent-name {
+            font-weight: bold;
+            margin-bottom: 5px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .agent-status {
+            font-size: 0.85em;
+            opacity: 0.8;
+        }
+
+        .status-dot {
+            display: inline-block;
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            margin-right: 5px;
+        }
+
+        .status-active {
+            background: #00ff88;
+            animation: blink 1.5s infinite;
+        }
+
+        .status-idle {
+            background: #ffd700;
+        }
+
+        @keyframes blink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.3; }
+        }
+
+        .alerts {
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            padding: 25px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .alert {
+            background: rgba(255, 59, 48, 0.2);
+            border-left: 4px solid #ff3b30;
+            padding: 15px;
+            margin-bottom: 15px;
+            border-radius: 10px;
+            animation: slideIn 0.5s ease-out;
+        }
+
+        .alert.warning {
+            background: rgba(255, 204, 0, 0.2);
+            border-left-color: #ffcc00;
+        }
+
+        .alert.info {
+            background: rgba(0, 122, 255, 0.2);
+            border-left-color: #007aff;
+        }
+
+        .alert-time {
+            font-size: 0.85em;
+            opacity: 0.7;
+            margin-top: 5px;
+        }
+
+        .controls {
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            padding: 25px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            margin-top: 20px;
+        }
+
+        .valve-control {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            margin-top: 15px;
+        }
+
+        .valve-btn {
+            background: rgba(79, 172, 254, 0.3);
+            border: 2px solid #4facfe;
+            color: #fff;
+            padding: 15px;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 1em;
+            transition: all 0.3s ease;
+            text-align: center;
+        }
+
+        .valve-btn:hover {
+            background: rgba(79, 172, 254, 0.5);
+            transform: scale(1.05);
+        }
+
+        .valve-btn.open {
+            background: rgba(0, 255, 136, 0.3);
+            border-color: #00ff88;
+        }
+
+        .valve-btn.closed {
+            background: rgba(255, 59, 48, 0.3);
+            border-color: #ff3b30;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes slideUp {
+            from { opacity: 0; transform: translateY(30px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateX(-30px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+
+        .prediction {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 15px;
+            border-radius: 10px;
+            margin-top: 15px;
+        }
+
+        .progress-bar {
+            background: rgba(255, 255, 255, 0.2);
+            height: 10px;
+            border-radius: 5px;
+            overflow: hidden;
+            margin: 10px 0;
+        }
+
+        .progress-fill {
+            background: linear-gradient(90deg, #4facfe 0%, #00f2fe 100%);
+            height: 100%;
+            transition: width 1s ease;
+        }
+
+        @media (max-width: 768px) {
+            .main-content {
+                grid-template-columns: 1fr;
+            }
+            
+            .header h1 {
+                font-size: 1.8em;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>💧 Water Crisis AI Dashboard</h1>
+            <p>Multi-Agent System Powered by Groq | Real-Time Overflow Management</p>
+        </div>
+
+        <div class="stats-grid">
+            <div class="stat-card" style="animation-delay: 0.1s;">
+                <div class="stat-icon">🌊</div>
+                <div class="stat-value" id="waterSaved">0</div>
+                <div class="stat-label">Liters Saved Today</div>
+            </div>
+            <div class="stat-card" style="animation-delay: 0.2s;">
+                <div class="stat-icon">📊</div>
+                <div class="stat-value" id="activeSensors">6</div>
+                <div class="stat-label">Active Sensors</div>
+            </div>
+            <div class="stat-card" style="animation-delay: 0.3s;">
+                <div class="stat-icon">⚡</div>
+                <div class="stat-value" id="responseTime">0.3s</div>
+                <div class="stat-label">Avg Response Time</div>
+            </div>
+            <div class="stat-card" style="animation-delay: 0.4s;">
+                <div class="stat-icon">🎯</div>
+                <div class="stat-value" id="accuracy">94%</div>
+                <div class="stat-label">Prediction Accuracy</div>
+            </div>
+        </div>
+
+        <div class="main-content">
+            <div class="tank-monitor">
+                <h2>🏗️ Tank Monitor - Sector 12, Jaipur</h2>
+                <div class="tank-visual">
+                    <div class="tank-container">
+                        <div class="water-level" id="waterLevel" style="height: 40%;">
+                            <div class="level-text" id="levelText">40%</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="prediction">
+                    <h3>📈 Overflow Prediction</h3>
+                    <p>Next 6 hours: <strong id="pred6h">12%</strong></p>
+                    <div class="progress-bar">
+                        <div class="progress-fill" id="prog6h" style="width: 12%;"></div>
+                    </div>
+                    <p>Next 12 hours: <strong id="pred12h">35%</strong></p>
+                    <div class="progress-bar">
+                        <div class="progress-fill" id="prog12h" style="width: 35%;"></div>
+                    </div>
+                    <p>Next 24 hours: <strong id="pred24h">68%</strong></p>
+                    <div class="progress-bar">
+                        <div class="progress-fill" id="prog24h" style="width: 68%;"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="agents-panel">
+                <h2>🤖 AI Agents Status</h2>
+                <div class="agent active" id="orchestrator">
+                    <div class="agent-name">
+                        <span>🎯 Orchestrator</span>
+                        <span class="agent-status">
+                            <span class="status-dot status-active"></span>Active
+                        </span>
+                    </div>
+                    <small>Llama 3.3 70B - Coordinating workflow</small>
+                </div>
+                <div class="agent" id="sensor">
+                    <div class="agent-name">
+                        <span>👁️ Sensor Monitor</span>
+                        <span class="agent-status">
+                            <span class="status-dot status-idle"></span>Idle
+                        </span>
+                    </div>
+                    <small>Llama-4-Scout - Vision analysis</small>
+                </div>
+                <div class="agent" id="prediction">
+                    <div class="agent-name">
+                        <span>🔮 Prediction</span>
+                        <span class="agent-status">
+                            <span class="status-dot status-idle"></span>Idle
+                        </span>
+                    </div>
+                    <small>Llama 3.3 70B - Overflow forecasting</small>
+                </div>
+                <div class="agent" id="voice">
+                    <div class="agent-name">
+                        <span>🎤 Voice Interface</span>
+                        <span class="agent-status">
+                            <span class="status-dot status-idle"></span>Idle
+                        </span>
+                    </div>
+                    <small>Whisper - Voice commands & alerts</small>
+                </div>
+                <div class="agent" id="controller">
+                    <div class="agent-name">
+                        <span>⚙️ Controller</span>
+                        <span class="agent-status">
+                            <span class="status-dot status-idle"></span>Idle
+                        </span>
+                    </div>
+                    <small>Gemma2 - Valve decisions</small>
+                </div>
+                <div class="agent" id="mcp">
+                    <div class="agent-name">
+                        <span>🔌 MCP Integration</span>
+                        <span class="agent-status">
+                            <span class="status-dot status-active"></span>Active
+                        </span>
+                    </div>
+                    <small>External APIs & IoT control</small>
+                </div>
+            </div>
+        </div>
+
+        <div class="alerts">
+            <h2>🚨 Recent Alerts</h2>
+            <div id="alertsContainer">
+                <div class="alert info">
+                    <strong>System Started</strong><br>
+                    All agents initialized successfully
+                    <div class="alert-time">Just now</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="controls">
+            <h2>🎛️ Valve Controls</h2>
+            <div class="valve-control">
+                <div class="valve-btn closed" id="valve1" onclick="toggleValve(1)">
+                    <div>Valve 1</div>
+                    <small>Drinking Water</small>
+                </div>
+                <div class="valve-btn closed" id="valve2" onclick="toggleValve(2)">
+                    <div>Valve 2</div>
+                    <small>Agriculture</small>
+                </div>
+                <div class="valve-btn closed" id="valve3" onclick="toggleValve(3)">
+                    <div>Valve 3</div>
+                    <small>Recharge Pit</small>
+                </div>
+                <div class="valve-btn closed" id="valve4" onclick="toggleValve(4)">
+                    <div>Valve 4</div>
+                    <small>Emergency Drain</small>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let waterLevel = 40;
+        let alertCount = 0;
+        let waterSaved = 0;
+
+        // Simulate water level changes
+        function updateWaterLevel() {
+            const increase = Math.random() * 3 - 1; // -1 to +2
+            waterLevel = Math.max(0, Math.min(100, waterLevel + increase));
+            
+            const waterLevelEl = document.getElementById('waterLevel');
+            const levelTextEl = document.getElementById('levelText');
+            
+            waterLevelEl.style.height = waterLevel + '%';
+            levelTextEl.textContent = Math.round(waterLevel) + '%';
+            
+            // Update alert level based on water level
+            if (waterLevel > 85) {
+                activateAgent('sensor');
+                activateAgent('prediction');
+                if (waterLevel > 95) {
+                    activateAgent('controller');
+                    addAlert('critical', 'Critical water level detected! Redirecting flow...');
+                    autoOpenValve();
+                } else {
+                    addAlert('warning', 'Warning: Water level approaching critical threshold');
+                }
+            } else if (waterLevel > 75) {
+                activateAgent('sensor');
+                deactivateAgent('controller');
+            } else {
+                deactivateAgent('sensor');
+                deactivateAgent('prediction');
+                deactivateAgent('controller');
+            }
+            
+            // Update predictions
+            updatePredictions();
+        }
+
+        function updatePredictions() {
+            const base = waterLevel / 100;
+            const pred6 = Math.min(95, Math.round(base * 30 + Math.random() * 15));
+            const pred12 = Math.min(95, Math.round(base * 50 + Math.random() * 20));
+            const pred24 = Math.min(95, Math.round(base * 70 + Math.random() * 25));
+            
+            document.getElementById('pred6h').textContent = pred6 + '%';
+            document.getElementById('pred12h').textContent = pred12 + '%';
+            document.getElementById('pred24h').textContent = pred24 + '%';
+            
+            document.getElementById('prog6h').style.width = pred6 + '%';
+            document.getElementById('prog12h').style.width = pred12 + '%';
+            document.getElementById('prog24h').style.width = pred24 + '%';
+        }
+
+        function activateAgent(agentId) {
+            const agent = document.getElementById(agentId);
+            if (!agent.classList.contains('active')) {
+                agent.classList.add('active');
+                const status = agent.querySelector('.agent-status');
+                status.innerHTML = '<span class="status-dot status-active"></span>Active';
+            }
+        }
+
+        function deactivateAgent(agentId) {
+            const agent = document.getElementById(agentId);
+            agent.classList.remove('active');
+            const status = agent.querySelector('.agent-status');
+            status.innerHTML = '<span class="status-dot status-idle"></span>Idle';
+        }
+
+        function addAlert(type, message) {
+            const container = document.getElementById('alertsContainer');
+            const alert = document.createElement('div');
+            alert.className = 'alert ' + type;
+            alert.innerHTML = `
+                <strong>${type.charAt(0).toUpperCase() + type.slice(1)}</strong><br>
+                ${message}
+                <div class="alert-time">${new Date().toLocaleTimeString()}</div>
+            `;
+            container.insertBefore(alert, container.firstChild);
+            
+            if (container.children.length > 5) {
+                container.removeChild(container.lastChild);
+            }
+        }
+
+        function toggleValve(valveNum) {
+            const valve = document.getElementById('valve' + valveNum);
+            const isOpen = valve.classList.contains('open');
+            
+            if (isOpen) {
+                valve.classList.remove('open');
+                valve.classList.add('closed');
+                addAlert('info', `Valve ${valveNum} closed`);
+            } else {
+                valve.classList.remove('closed');
+                valve.classList.add('open');
+                addAlert('info', `Valve ${valveNum} opened - redirecting water`);
+                activateAgent('controller');
+                activateAgent('mcp');
+                waterSaved += Math.floor(Math.random() * 500 + 200);
+                document.getElementById('waterSaved').textContent = waterSaved.toLocaleString();
+                
+                // Gradually reduce water level when valve is open
+                const reduceInterval = setInterval(() => {
+                    if (waterLevel > 50) {
+                        waterLevel -= 2;
+                    } else {
+                        clearInterval(reduceInterval);
+                        deactivateAgent('controller');
+                    }
+                }, 1000);
+            }
+        }
+
+        function autoOpenValve() {
+            // Auto-open valves in priority order when critical
+            setTimeout(() => toggleValve(1), 500);
+            setTimeout(() => toggleValve(2), 1500);
+            activateAgent('voice');
+            addAlert('info', 'Voice alert: "Critical overflow detected. Activating emergency protocols."');
+        }
+
+        // Update every 3 seconds
+        setInterval(updateWaterLevel, 3000);
+        
+        // Initial update
+        updateWaterLevel();
+        
+        // Simulate water saved counter
+        setInterval(() => {
+            waterSaved += Math.floor(Math.random() * 50);
+            document.getElementById('waterSaved').textContent = waterSaved.toLocaleString();
+        }, 5000);
+
+        // Simulate response time updates
+        setInterval(() => {
+            const time = (0.2 + Math.random() * 0.3).toFixed(2);
+            document.getElementById('responseTime').textContent = time + 's';
+        }, 10000);
+
+        // Add periodic info alerts
+        setInterval(() => {
+            const messages = [
+                'Weather forecast updated: Light rain expected',
+                'MCP integration: All systems connected',
+                'Sensor calibration complete',
+                'Prediction model updated with latest data'
+            ];
+            const msg = messages[Math.floor(Math.random() * messages.length)];
+            addAlert('info', msg);
+        }, 15000);
+    </script>
+</body>
+</html>
