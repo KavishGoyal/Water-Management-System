@@ -1,0 +1,31 @@
+{
+  "mcpServers": {
+    "water-management": {
+      "command": "python",
+      "args": ["mcp_server.py"],
+      "env": {
+        "GROQ_API_KEY": "${GROQ_API_KEY}",
+        "DATABASE_PATH": "./water_management.db"
+      }
+    }
+  },
+  "resources": [
+    {
+      "uri": "water://sensors/current",
+      "name": "Current Sensor Data",
+      "type": "real-time"
+    },
+    {
+      "uri": "water://alerts/active",
+      "name": "Active Alerts",
+      "type": "real-time"
+    }
+  ],
+  "tools": [
+    "get_weather_forecast",
+    "control_valve",
+    "record_sensor_reading",
+    "send_sms_alert",
+    "get_tank_capacity"
+  ]
+}

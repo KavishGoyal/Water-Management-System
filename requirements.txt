@@ -1,0 +1,21 @@
+groq
+mcp[cli]
+anthropic
+opencv-python
+numpy
+requests
+
+# API and web framework
+fastapi
+uvicorn[standard]
+pydantic
+
+# Additional tools
+python-dotenv
+python-multipart
+aiofiles
+
+# Optional (for production)
+# gunicorn
+# redis
+# celery
